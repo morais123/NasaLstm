@@ -4,4 +4,3 @@ matplotlib
 sklearn
 numpy
 seaborn
-wxpython
