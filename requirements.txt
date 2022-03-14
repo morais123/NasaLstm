@@ -2,17 +2,7 @@ streamlit
 pandas
 matplotlib
 sklearn
-imblearn
 numpy
-os
 seaborn
-shap
-xgboost
-mpl_toolkits
-patsy
 plotly
-pickle
 wx
-pathlib
-eli5
-pdp
