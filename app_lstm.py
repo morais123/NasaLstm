@@ -12,47 +12,17 @@ import shap
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+st.set_page_config(layout="wide", page_title='Explaining  Predictive Maintenance ML Model')
 
-@st.cache(suppress_st_warning=True)
-def data_retrieving():
-    """
-    Function : data_retrieving
-    Param : data_train : retrieves data and perform data preparation tasks
-    Output: dataframe with recoded RUL 1 if RUL<20 or 0 of RUL>20 
-    
-    
-    
-    """
-    dfs=[]
-    files=['data/train_FD001.txt','data/train_FD002.txt','data/train_FD003.txt','data/train_FD004.txt','data/test_FD001.txt','data/test_FD002.txt','data/test_FD003.txt','data/train_FD004.txt']
-    for file in files:
-        data=pd.read_csv(file,header=None,sep=' ')
-        data=data[[x for x in range(0,26)]]
-        data.columns=['ID', 'Cycle', 'OpSet1', 'OpSet2', 'OpSet3', 'SensorMeasure1', 'SensorMeasure2', 'SensorMeasure3', 'SensorMeasure4', 'SensorMeasure5', 'SensorMeasure6', 'SensorMeasure7', 'SensorMeasure8', 'SensorMeasure9', 'SensorMeasure10', 'SensorMeasure11', 'SensorMeasure12', 'SensorMeasure13', 'SensorMeasure14', 'SensorMeasure15', 'SensorMeasure16', 'SensorMeasure17', 'SensorMeasure18', 'SensorMeasure19', 'SensorMeasure20', 'SensorMeasure21']
-        max_cycles_df=data.groupby(['ID'],sort=False)['Cycle'].max().reset_index().rename(columns={'Cycle':'MaxCycle'})
-        data=pd.merge(data,max_cycles_df,how='inner',on='ID')
-        
-        data['RUL']=data['MaxCycle']-data['Cycle']
-        #df_all_variables_train1=df_all_variables_train1.set_index('ID')
-        #df_all_variables_train1['RUL']=[1 if out<20 else 0 for out in df_all_variables_train1['RUL']]
-        dfs.append(data)
-    return dfs
-@st.cache(suppress_st_warning=True)
-def get_data():
-    dataframe_model=[]
-    dataframes=data_retrieving()
-    
-
-    for data_model in dataframes:
-        data_model=data_model.set_index('ID')
-        data_model['RUL']=[1 if out<20 else 0 for out in data_model['RUL']]
-        dataframe_model.append(data_model)
-
-    return dataframes,dataframe_model
-    
-dataframes,dataframe_model=get_data()
-
-
+st.header('NASA turbofan engines')
+st.markdown("""The turbofan dataset features four datasets of increasing complexity 
+            The engines operate normally in the beginning but develop a fault over time. For the training sets, the engines are run to failure, while in the test sets the time series end ‘sometime’ before failure. 
+            The goal is to predict the Remaining Useful Life (RUL) of each turbofan engine to prevent failure and alert the company about the 20 cycles before it happens""")
+st.subheader('Description of the database')
+Description=pd.DataFrame([['FD001',1,1,100,100],['FD002',6,1,260,259],['FD003',1,2,100,100],['FD004',6,2,248,249]])
+Description=Description.rename(columns={0:'Dataset',1:'Operating conditions',2:'Fault modes',3:'Train size',4:'Test size'})
+Description=Description.set_index('Dataset')
+st.dataframe(Description)
 st.sidebar.markdown("""
     **Author**: Rais Mohamed-Aziz
     
@@ -117,37 +87,5 @@ if add_selectbox=="Component 1: FD001":
             """)
             st.write("Upload the dataset to Register them in DataBase")
            
-            #,df_all_variables_train2,df_all_variables_train3,df_all_variables_train4,df_all_variables_test1,df_all_variables_test2,df_all_variables_test3,df_all_variables_test4
-            st.dataframe(dataframes[4])
-            st.subheader('Frequency of RUL accross the engines')
-            df_max_rul = dataframes[0][['ID', 'RUL']].groupby('ID').max().reset_index()
-            fig=plt.figure(figsize=(15,7))
-            df_max_rul['RUL'].hist(bins=15)
-            plt.xlabel('RUL')
-            plt.ylabel('frequency')
             
-            st.pyplot(fig)
-            st.set_option('deprecation.showPyplotGlobalUse', False)
-            st.subheader('Visualise evolution of each sensor value by cycle')
-            sensors=dataframes[0].iloc[:,5:26]
-            plt.figure(figsize=(13,5))
-            sensor_name = st.selectbox('Select the Sensor',(sensors.columns))
-            for i in dataframes[0]['ID'].unique():
-                if (i % 10 == 0):  # only plot every 10th unit_nr
-                    plt.plot('RUL', sensor_name, 
-                             data=dataframes[0][dataframes[0]['ID']==i])
-            plt.xlim(250, 0)  # reverse the x-axis so RUL counts down to zero
-            plt.xticks(np.arange(0, 275, 25))
-            plt.ylabel(sensor_name)
-            plt.xlabel('Remaining Use fulLife')
-            plt.show()
-            
-            #plot_sensor(select_person)
-            st.pyplot()
-            st.subheader('Detect relationships between variables')
-                
-            fig = plt.figure(figsize=(10, 4))
-            f_cor = dataframes[0].corr()
-            sns.heatmap(f_cor)
-            st.pyplot()
 
